@@ -1,0 +1,46 @@
+#compdef tmx
+# Flags, the doctor command, hosts after -r/--remote, folders after --dir.
+# Session names are left out: listing them would mean ssh to every host on
+# each Tab.
+
+_tmx_hosts() {
+  local -a hosts
+  hosts=(${(f)"$(_call_program hosts tmx --hosts 2>/dev/null)"})
+  _wanted hosts expl host compadd -a hosts
+}
+
+# doctor is the one word that is not a session name. It is offered only
+# once the word typed so far is a prefix of it: a session name is free
+# text, so with nothing typed, doctor would be the only candidate and Tab
+# would insert it on the spot.
+_tmx_first() {
+  local -a cmds
+  if [[ -n $PREFIX && doctor == ${PREFIX}* ]]; then
+    cmds=('doctor:check every host: ssh, key auth, tmux')
+    _describe -t commands 'command' cmds
+  elif [[ $PREFIX != -* ]]; then
+    _message 'session name'
+  fi
+}
+
+# --version, --hosts and doctor only work as the whole command line, so
+# they are offered only as the first word. After anything else, the first
+# word left is a session name.
+local -a alone
+local first='(-l --local)1::session name: '
+if (( CURRENT == 2 )); then
+  alone=(
+    '(- : *)--version[print the version]'
+    '(- : *)--hosts[list this machine and the configured hosts]'
+  )
+  first='1::command or session name:_tmx_first'
+fi
+
+_arguments -S \
+  '(- : *)'{-h,--help}'[show usage]' \
+  $alone \
+  '(-l --local -r --remote --dir :)'{-l,--local}'[pick a session on this machine]' \
+  '(-l --local -r --remote)-r[pick or start a session on HOST]:host:_tmx_hosts' \
+  '(-l --local -r --remote)--remote=[pick or start a session on HOST]:host:_tmx_hosts' \
+  '(-l --local)--dir=[start a new session in DIR]:folder:_directories' \
+  $first

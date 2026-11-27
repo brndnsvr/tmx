@@ -1,0 +1,41 @@
+# tmx.conf: the hosts this machine's tmx lists and can reach.
+# Copy to ~/.config/tmx.conf and edit. Each machine has its own file,
+# listing what it can see. Check it with `tmx doctor`.
+#
+# This machine is always listed first and needs no line here.
+# Every other host must have an entry in ~/.ssh/config and log in with a
+# key: tmx runs ssh with BatchMode, so it never prompts for a password.
+
+# The tmux servers listed on every host, as in `tmux -L NAME`.
+# Optional; this is the default. `default` is plain `tmux`.
+servers default tmx
+
+# What a session name loses on the way to its base name, which is what
+# tmx matches against folders, sibling sessions and repo names. Both are
+# optional and empty by default; a trailing -<digits> always comes off.
+# With these lines, wip-webapp-run and webapp-002 both have base name webapp.
+#strip-prefix wip-
+#strip-suffix -run -test
+
+# One `host` line per ssh alias, in the order the picker shows them.
+host server1
+host devbox
+
+# Settings for a host go on indented lines under it.
+host buildbox
+  # Picker attaches use `-f ignore-size` (yes, the default) so they never
+  # resize someone else's window. Say no for a host that runs
+  # `window-size latest`, where that flag leaves dot fill instead.
+  ignore-size no
+  # A new session whose name holds KEYWORD starts in PATH, relative to
+  # that host's home. Repeat for more keywords; the longest match wins.
+  folder api code/webapp/api
+  # Where to look for git repos, relative to that host's home, each up to
+  # 4 levels deep. The default is `repos code`. Home's direct children
+  # (~/*/.git) are always checked as well.
+  repos src work
+
+# A host line naming this machine adds no second row, but its settings
+# (folders, repos, ignore-size) apply to sessions started here:
+#host laptop
+#  repos code projects

@@ -1,0 +1,4 @@
+# The built binary; it is installed or copied, never committed.
+/tmx
+# Personal Makefile settings (PEERS, ZSH_COMPDIR); each machine its own.
+/local.mk
