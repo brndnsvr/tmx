@@ -36,10 +36,17 @@ That puts the binary in `~/.local/bin/tmx` and the zsh completion in
 (binary in `$(PREFIX)/bin`) or `ZSH_COMPDIR`, on the command line or in
 `local.mk` (see [Deploying to other machines](#deploying-to-other-machines)).
 
-Or with Go alone (no completion, and `tmx --version` says `tmx dev`):
+Or with Go alone (no completion):
 
 ```
 go install github.com/brndnsvr/tmx@latest
+```
+
+Run the same command to update. To install straight into `~/.local/bin`
+and pick up a fresh push without waiting for Go's module proxy:
+
+```
+GOPRIVATE=github.com/brndnsvr/tmx GOBIN=$HOME/.local/bin go install github.com/brndnsvr/tmx@latest
 ```
 
 Make sure the binary's folder is on your `PATH`. For the completion, add
@@ -65,7 +72,7 @@ Then write `~/.config/tmx.conf` (start from `tmx.conf.example`) and run
 | `tmx --dir ~/scratch notes` | Create `notes` in `~/scratch` (if it is new). |
 | `tmx doctor` | Check every host: ssh config, key auth, tmux, servers. |
 | `tmx --hosts` | Print this machine, then the configured hosts, one per line. |
-| `tmx --version` | Print `tmx <git describe>`, or `tmx dev` for an unstamped build. |
+| `tmx --version` | Print `tmx <commit>`: the Makefile's `git describe` stamp, or the commit Go recorded for a `go install` build; `tmx dev` for a plain build. |
 | `tmx -h` | Short usage. |
 
 `doctor` is a command, so a session called doctor needs `tmx -- doctor`.

@@ -13,6 +13,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -153,9 +155,31 @@ func (a *app) sshProblem(host string) string {
 	return ""
 }
 
-// version is stamped by the Makefile from git describe; a plain go build
-// says dev.
+// version is stamped by the Makefile from git describe. A binary from
+// `go install ...@latest` has no stamp, so it falls back to the module
+// version Go records in it; a plain go build in a checkout says dev.
 var version = "dev"
+
+// pseudoVersion matches Go's v0.0.0-YYYYMMDDHHMMSS-<12 hex> form, whose
+// hex is the commit.
+var pseudoVersion = regexp.MustCompile(`-\d{14}-([0-9a-f]{12})$`)
+
+// shownVersion is what --version prints: the stamp, else the module
+// version from the build info, cut to the short commit for a pseudo-version
+// so it reads the same as a Makefile build of that commit.
+func shownVersion(stamp string, info *debug.BuildInfo) string {
+	if stamp != "dev" || info == nil {
+		return stamp
+	}
+	v := info.Main.Version
+	if v == "" || v == "(devel)" {
+		return stamp
+	}
+	if m := pseudoVersion.FindStringSubmatch(v); m != nil {
+		return m[1][:7]
+	}
+	return v
+}
 
 func main() {
 	os.Exit(newApp().main(os.Args[1:]))
@@ -290,7 +314,8 @@ func (a *app) main(args []string) int {
 		fmt.Fprint(a.stdout, usage)
 		return 0
 	case o.version:
-		fmt.Fprintf(a.stdout, "tmx %s\n", version)
+		info, _ := debug.ReadBuildInfo()
+		fmt.Fprintf(a.stdout, "tmx %s\n", shownVersion(version, info))
 		return 0
 	}
 	if a.confErr != nil {

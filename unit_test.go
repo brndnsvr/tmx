@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime/debug"
 	"strings"
 	"testing"
 )
@@ -605,5 +606,25 @@ func TestDevNullIsNotATerminal(t *testing.T) {
 	defer f.Close()
 	if isTerminal(f.Fd()) {
 		t.Error("/dev/null counted as a terminal, so the picker would wait on fzf")
+	}
+}
+
+func TestShownVersion(t *testing.T) {
+	bi := func(v string) *debug.BuildInfo { return &debug.BuildInfo{Main: debug.Module{Version: v}} }
+	for _, tc := range []struct {
+		stamp string
+		info  *debug.BuildInfo
+		want  string
+	}{
+		{"01966cb", bi("v0.0.0-20261127161053-01966cbea2fa"), "01966cb"},
+		{"dev", bi("v0.0.0-20261127161053-01966cbea2fa"), "01966cb"},
+		{"dev", bi("v1.2.0"), "v1.2.0"},
+		{"dev", bi("(devel)"), "dev"},
+		{"dev", bi(""), "dev"},
+		{"dev", nil, "dev"},
+	} {
+		if got := shownVersion(tc.stamp, tc.info); got != tc.want {
+			t.Errorf("shownVersion(%q, %v) = %q, want %q", tc.stamp, tc.info, got, tc.want)
+		}
 	}
 }
